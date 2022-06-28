@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageSwitcher;
@@ -24,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.egrobots.grassanalysis2.R;
+import com.egrobots.grassanalysis2.datasource.FirebaseDataSource;
 import com.egrobots.grassanalysis2.managers.AudioRecorder;
 import com.egrobots.grassanalysis2.managers.CameraXRecorder;
 import com.egrobots.grassanalysis2.managers.ExoPlayerVideoManager;
@@ -31,17 +33,10 @@ import com.egrobots.grassanalysis2.managers.OpenGalleryActivityResultCallback;
 import com.egrobots.grassanalysis2.models.Image;
 import com.egrobots.grassanalysis2.utils.Constants;
 import com.egrobots.grassanalysis2.utils.GuideDialog;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -61,7 +56,7 @@ import butterknife.OnClick;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 public class CaptureImagesActivity extends AppCompatActivity implements GuideDialog.GuidelineCallback
-        , CameraXRecorder.CameraXCallback, LocationListener {
+        , CameraXRecorder.CameraXCallback, LocationListener, FirebaseDataSource.FirebaseCallback {
 
     private static final int REQUEST_CODE_PERMISSIONS = 1;
     private static final String[] REQUIRED_PERMISSIONS = {Manifest.permission.CAMERA
@@ -94,6 +89,13 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
     ImageButton addImageButton;
     @BindView(R.id.delete_image_button)
     ImageButton deleteImageButton;
+    @BindView(R.id.add_question_view)
+    View addQuestionView;
+    @BindView(R.id.text_question_edit_text)
+    EditText textQuestionEditText;
+    @BindView(R.id.record_audio_button)
+    ImageButton recordAudioButton;
+
     private Uri fileUri;
     private List<Uri> imagesUris = new ArrayList<>();
     private List<Image> uploadedImagesUris = new ArrayList<>();
@@ -118,6 +120,8 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
 
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // 1 minute
+    private FirebaseDataSource firebaseDataSource;
+    private String questionText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +134,8 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
         registerForActivityResult();
         registerClickListenersForPrevNextButtons();
         initializeImageSwitcher();
+
+        firebaseDataSource = new FirebaseDataSource(this);
     }
 
     private void initializeCameraX() {
@@ -191,15 +197,26 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
         if (isAddingNewImage) {
             //no image captured yet
             cameraXRecorder.captureImage();
-        } else {
-            if (!isAudioRecordingStarted) {
-                //recording audio is not started yet, so start it
-                onStartRecordingAudio();
-            } else {
-                onStopRecordingAudio();
-            }
         }
+    }
 
+    @OnClick(R.id.record_audio_button)
+    public void onRecordQuestionAudioClicked() {
+        if (!isAudioRecordingStarted) {
+            //recording audio is not started yet, so start it
+            onStartRecordingAudio();
+        } else {
+            onStopRecordingAudio();
+        }
+    }
+
+    @OnClick(R.id.send_text_button)
+    public void onSendRequestButtonClicked() {
+        progressDialog.show();
+        questionText = textQuestionEditText.getText().toString();
+        //upload question as text or audio
+        Toast.makeText(this, "question will be uploaded", Toast.LENGTH_SHORT).show();
+        firebaseDataSource.uploadImageToFirebaseStorage(imagesUris.get(uploadedImageIndex));
     }
 
     private boolean checkEnableGpsLocationAccess() {
@@ -219,25 +236,31 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
         imageSwitcher.setImageURI(imagesUris.get(selectedImagePosition));
 
         //if user capture images from 4 angles, change icon to record audio
-//        if (imagesUris.size() == 4) {
-        captureButton.setEnabled(true);
-        captureButton.setImageDrawable(ContextCompat.getDrawable(CaptureImagesActivity.this, R.drawable.recording_audio));
-//        }
-
-        if (imagesUris.size() > 1) {
-            deleteImageButton.setVisibility(View.VISIBLE);
-        } else {
+        if (imagesUris.size() == 4) {
+            //hide record button
+            captureButton.setVisibility(View.GONE);
+            //hide add/delete images
+            addImageButton.setVisibility(View.GONE);
             deleteImageButton.setVisibility(View.GONE);
-            prevImageButton.setVisibility(View.GONE);
-            return;
-        }
+            //add question as text or voice
+            addQuestionView.setVisibility(View.VISIBLE);
+        } else {
+            captureButton.setEnabled(false);
+            if (imagesUris.size() > 1) {
+                deleteImageButton.setVisibility(View.VISIBLE);
+            } else {
+                deleteImageButton.setVisibility(View.GONE);
+                prevImageButton.setVisibility(View.GONE);
+                return;
+            }
 
-        if (selectedImagePosition == 0) {
-            nextImageButton.setVisibility(View.VISIBLE);
-            prevImageButton.setVisibility(View.GONE);
-        } else if (selectedImagePosition == imagesUris.size() - 1) {
-            nextImageButton.setVisibility(View.GONE);
-            prevImageButton.setVisibility(View.VISIBLE);
+            if (selectedImagePosition == 0) {
+                nextImageButton.setVisibility(View.VISIBLE);
+                prevImageButton.setVisibility(View.GONE);
+            } else if (selectedImagePosition == imagesUris.size() - 1) {
+                nextImageButton.setVisibility(View.GONE);
+                prevImageButton.setVisibility(View.VISIBLE);
+            }
         }
     }
 
@@ -245,7 +268,7 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
     public void onDoneClicked() {
         Toast.makeText(this, "images will be uploaded", Toast.LENGTH_SHORT).show();
         progressDialog.show();
-        uploadImageToFirebaseStorage();
+        uploadImagesToFirebaseStorage();
         //release exoplayer
         if (exoPlayerManager != null) {
             exoPlayerManager.releasePlayer();
@@ -295,6 +318,10 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
     @OnClick(R.id.delete_image_button)
     public void onDeleteImageClicked() {
         imagesUris.remove(selectedImagePosition);
+        if (imagesUris.size() < 4) {
+            addImageButton.setVisibility(View.VISIBLE);
+            captureButton.setImageDrawable(ContextCompat.getDrawable(CaptureImagesActivity.this, R.drawable.start_record));
+        }
         if (selectedImagePosition != 0) {
             --selectedImagePosition;
         }
@@ -340,8 +367,8 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
     public void onStartRecordingAudio() {
         isAudioRecordingStarted = true;
         //set button as stop recording
-        captureButton.setEnabled(true);
-        captureButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.stop_record));
+        recordAudioButton.setEnabled(true);
+        recordAudioButton.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.stop_record));
         //start recording audio
         audioRecordedFile = new File(getFilesDir().getPath(), UUID.randomUUID().toString() + Constants.AUDIO_FILE_TYPE);
         try {
@@ -368,22 +395,8 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
     public void onStopRecordingAudio() {
         isAudioRecordingStarted = false;
         handler.removeCallbacks(updateEverySecRunnable);
-        captureButton.setEnabled(true);
-        captureButton.setImageDrawable(ContextCompat.getDrawable(CaptureImagesActivity.this, R.drawable.start_record));
-        addImageButton.setVisibility(View.GONE);
-        deleteImageButton.setVisibility(View.GONE);
-        //stop recorded audio
-        audioRecorder.stop();
-        reviewView.setVisibility(View.VISIBLE);
-        //hide record button
-        captureButton.setVisibility(View.GONE);
-        //show exoplayer audio
-        previewView.setVisibility(View.GONE);
-        playerView.setVisibility(View.GONE);
-        //show image with audio
-        exoPlayerManager = new ExoPlayerVideoManager();
-        exoPlayerManager.initializeAudioExoPlayer(this, audioRecordedFile.getPath(), true);
-        exoPlayerManager.initializePlayer(playerView);
+        recordAudioButton.setEnabled(true);
+        recordAudioButton.setImageDrawable(ContextCompat.getDrawable(CaptureImagesActivity.this, R.drawable.recording_audio));
     }
 
     @Override
@@ -466,46 +479,42 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
                 }));
     }
 
-    private void uploadImageToFirebaseStorage() {
+    private void uploadImagesToFirebaseStorage() {
 //        uploadedImageIndex = 0;
+//        if (uploadedImageIndex < imagesUris.size()) {
+//            Uri imageUri = imagesUris.get(uploadedImageIndex);
+//            firebaseDataSource.uploadImageToFirebaseStorage(imageUri);
+//        } else {
+//            //save images info in the database
+//            firebaseDataSource.saveRequestToFirebaseDatabase(uploadedImagesUris);
+//        }
+    }
+
+    @Override
+    public void onImageUploaded(String downloadUrl) {
+        Image img = new Image();
+        double[] latlong = getLatLongImage(imagesUris.get(uploadedImageIndex));
+        img.setUrl(downloadUrl);
+        if (latlong != null) {
+            img.setLatitude(latlong[0]);
+            img.setLongitude(latlong[1]);
+        }
+        uploadedImagesUris.add(img);
+        uploadedImageIndex++;
         if (uploadedImageIndex < imagesUris.size()) {
             Uri imageUri = imagesUris.get(uploadedImageIndex);
-            final StorageReference reference = FirebaseStorage.getInstance().getReference()
-                    .child(Constants.REQUESTS_REF + System.currentTimeMillis() + ".jpg");
-            UploadTask uploadFileTask = reference.putFile(imageUri);
-            uploadFileTask.continueWithTask(task -> {
-                if (!task.isSuccessful()) {
-                    throw task.getException();
-                }
-                // Continue with the fileTask to get the download URL
-                reference.getDownloadUrl().addOnCompleteListener(task1 -> {
-                    String downloadUrl = task1.getResult().toString();
-                    Image img = new Image();
-                    double[] latlong = getLatLongImage(imageUri);
-                    img.setUrl(downloadUrl);
-                    if (latlong != null) {
-                        img.setLatitude(latlong[0]);
-                        img.setLongitude(latlong[1]);
-                    }
-                    uploadedImagesUris.add(img);
-                    uploadedImageIndex++;
-                    uploadImageToFirebaseStorage();
-                });
-                return reference.getDownloadUrl();
-            });
+            firebaseDataSource.uploadImageToFirebaseStorage(imageUri);
         } else {
-            //save images info in the database
-            Toast.makeText(this, "Finish uploading files", Toast.LENGTH_SHORT).show();
-            DatabaseReference requestsRef = FirebaseDatabase.getInstance().getReference(Constants.REQUESTS_NODE);
-            HashMap<String, Object> requestData = new HashMap<>();
-            requestData.put("images", uploadedImagesUris);
-            requestData.put("status", "in progress");
-            requestsRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).push().updateChildren(requestData).addOnCompleteListener(task -> {
-                progressDialog.dismiss();
-                Toast.makeText(CaptureImagesActivity.this, "Images are uploaded successfully", Toast.LENGTH_SHORT).show();
-                finish();
-            });
+            //send request
+            firebaseDataSource.addNewRequest(uploadedImagesUris, audioRecordedFile, questionText);
         }
+    }
+
+    @Override
+    public void onRequestSaved() {
+        progressDialog.dismiss();
+        Toast.makeText(CaptureImagesActivity.this, "Images are uploaded successfully", Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     private void showGPSDisabledAlertToUser() {
@@ -558,27 +567,6 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
             return latlong;
         }
         return null;
-//        InputStream in = null;
-//        String[] latlong = new String[2];
-//        try {
-//            in = getContentResolver().openInputStream(imageUri);
-//            ExifInterface exifInterface = new ExifInterface(in);
-//            String lat = exifInterface.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
-//            String lng = exifInterface.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
-//            latlong[0] = lat;
-//            latlong[1] = lng;
-//            Toast.makeText(CaptureImagesActivity.this, "Latitude: " + lat + ", Longitude: " + lng, Toast.LENGTH_SHORT).show();
-//            return latlong;
-//        } catch (IOException e) {
-//            // Handle any errors
-//        } finally {
-//            if (in != null) {
-//                try {
-//                    in.close();
-//                } catch (IOException ignored) {}
-//            }
-//            return latlong;
-//        }
     }
 
     @Override
@@ -610,4 +598,5 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
     public void onProviderDisabled(@NonNull String provider) {
 
     }
+
 }
