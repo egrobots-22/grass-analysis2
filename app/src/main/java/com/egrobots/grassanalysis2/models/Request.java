@@ -3,9 +3,10 @@ package com.egrobots.grassanalysis2.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.HashMap;
 import java.util.List;
 
-public class Request implements Parcelable {
+public class Request {
 
     private String id;
     private String userId;
@@ -13,31 +14,10 @@ public class Request implements Parcelable {
     private String status;
     private String audioQuestion;
     private String textQuestion;
+    private HashMap<String, Object> answer;
 
     public Request() {
     }
-
-    protected Request(Parcel in) {
-        id = in.readString();
-        userId = in.readString();
-        images = in.createTypedArrayList(Image.CREATOR);
-        status = in.readString();
-        audioQuestion = in.readString();
-        textQuestion = in.readString();
-        in.readList(images, Image.class.getClassLoader());
-    }
-
-    public static final Creator<Request> CREATOR = new Creator<Request>() {
-        @Override
-        public Request createFromParcel(Parcel in) {
-            return new Request(in);
-        }
-
-        @Override
-        public Request[] newArray(int size) {
-            return new Request[size];
-        }
-    };
 
     public String getId() {
         return id;
@@ -87,19 +67,12 @@ public class Request implements Parcelable {
         this.textQuestion = textQuestion;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
+    public HashMap<String, Object> getAnswer() {
+        return answer;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(id);
-        dest.writeString(userId);
-        dest.writeTypedList(images);
-        dest.writeString(status);
-        dest.writeString(audioQuestion);
-        dest.writeString(textQuestion);
-        dest.writeTypedList(images);
+    public void setAnswer(HashMap<String, Object> answer) {
+        this.answer = answer;
     }
+
 }

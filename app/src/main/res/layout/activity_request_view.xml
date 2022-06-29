@@ -89,6 +89,7 @@
             android:id="@+id/analysis_answer_edit_text"
             android:layout_width="match_parent"
             android:layout_height="50dp"
+            android:padding="16dp"
             android:background="@drawable/cornered_gray_bg"/>
 
         <Button
