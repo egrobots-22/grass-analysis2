@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -11,7 +11,8 @@
     <RelativeLayout
         android:id="@+id/multiple_images_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="8">
         <ImageView
             android:id="@+id/image_view"
             android:layout_width="match_parent"
@@ -43,15 +44,17 @@
 
 
     <LinearLayout
+        android:id="@+id/user_question_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_gravity="bottom"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_weight="2">
 
         <TextView
             android:id="@+id/text_question_text_view"
             android:layout_width="match_parent"
-            android:layout_height="80dp"
+            android:layout_height="wrap_content"
             android:text=" السؤال سوف يكتب هنا"
             android:padding="16dp"
             android:textSize="18sp"
@@ -61,9 +64,42 @@
         <androidx.media3.ui.PlayerView
             android:id="@+id/videoView"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
             app:resize_mode="fill" />
 
     </LinearLayout>
 
-</FrameLayout>
+    <LinearLayout
+        android:id="@+id/questions_analysis_layout"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_gravity="bottom"
+        android:padding="16dp"
+        android:orientation="vertical"
+        android:background="@color/white"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/analysis_question_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="السؤال الأول: هل الشجرة تالفة؟"/>
+
+        <EditText
+            android:id="@+id/analysis_answer_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@drawable/cornered_gray_bg"/>
+
+        <Button
+            android:id="@+id/next_question_button"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/gradient_bg"
+            android:text="التالي"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+</LinearLayout>

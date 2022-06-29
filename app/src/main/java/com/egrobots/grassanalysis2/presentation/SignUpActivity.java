@@ -56,14 +56,18 @@ public class SignUpActivity extends AppCompatActivity {
             FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
-                    startActivity(new Intent(SignUpActivity.this, RequestsActivity.class));
-                    String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
-                    HashMap<String, Object> userData = new HashMap<>();
-                    userData.put("username", username);
-                    userData.put("email", email);
+                    if (task.isSuccessful()) {
+                        startActivity(new Intent(SignUpActivity.this, RequestsActivity.class));
+                        String userId = task.getResult().getUser().getUid();
+                        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+                        HashMap<String, Object> userData = new HashMap<>();
+                        userData.put("username", username);
+                        userData.put("email", email);
 
-                    usersRef.child(userId).updateChildren(userData);
+                        usersRef.child(userId).updateChildren(userData);
+                    } else {
+                        System.out.println(task.getException());
+                    }
                 }
             });
         }

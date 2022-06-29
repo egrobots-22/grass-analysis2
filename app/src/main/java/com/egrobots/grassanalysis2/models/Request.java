@@ -8,6 +8,7 @@ import java.util.List;
 public class Request implements Parcelable {
 
     private String id;
+    private String userId;
     private List<Image> images;
     private String status;
     private String audioQuestion;
@@ -18,6 +19,7 @@ public class Request implements Parcelable {
 
     protected Request(Parcel in) {
         id = in.readString();
+        userId = in.readString();
         images = in.createTypedArrayList(Image.CREATOR);
         status = in.readString();
         audioQuestion = in.readString();
@@ -47,6 +49,14 @@ public class Request implements Parcelable {
 
     public List<Image> getImages() {
         return images;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public void setImages(List<Image> images) {
@@ -85,6 +95,7 @@ public class Request implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(id);
+        dest.writeString(userId);
         dest.writeTypedList(images);
         dest.writeString(status);
         dest.writeString(audioQuestion);

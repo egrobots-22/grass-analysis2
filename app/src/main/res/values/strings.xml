@@ -10,4 +10,6 @@
     <string name="already_have_an_account">تمتلك حساب بالفعل ؟</string>
     <string name="start_now">ابدأ الان</string>
     <string name="write_your_question_here">اكتب او سجل سؤالك هنا</string>
+    <string name="answer_question_action_title">اجب السؤال</string>
+    <string name="sign_out">تسجيل خروج</string>
 </resources>
