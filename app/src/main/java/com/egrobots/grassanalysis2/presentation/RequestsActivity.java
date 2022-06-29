@@ -24,7 +24,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RequestsActivity extends AppCompatActivity {
+public class RequestsActivity extends AppCompatActivity implements RequestsAdapter.OnRequestClickedCallback {
 
     private List<Request> requestList;
 
@@ -36,6 +36,10 @@ public class RequestsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_requests);
         ButterKnife.bind(this);
+
+        RequestsAdapter requestsAdapter = new RequestsAdapter(this);
+        requestRecyclerView.setLayoutManager(new LinearLayoutManager(RequestsActivity.this));
+        requestRecyclerView.setAdapter(requestsAdapter);
 
         DatabaseReference requestsRef = FirebaseDatabase.getInstance()
                 .getReference(Constants.REQUESTS_NODE)
@@ -49,9 +53,6 @@ public class RequestsActivity extends AppCompatActivity {
                     requestItem.setId(requestSnapshot.getKey());
                     requestList.add(requestItem);
                 }
-                RequestsAdapter requestsAdapter = new RequestsAdapter();
-                requestRecyclerView.setAdapter(requestsAdapter);
-                requestRecyclerView.setLayoutManager(new LinearLayoutManager(RequestsActivity.this));
                 requestsAdapter.setItems(requestList);
                 requestsAdapter.notifyDataSetChanged();
             }
@@ -66,5 +67,12 @@ public class RequestsActivity extends AppCompatActivity {
     @OnClick(R.id.add_new_request_fab)
     public void onAddNewRequestClicked() {
         startActivity(new Intent(this, CaptureImagesActivity.class));
+    }
+
+    @Override
+    public void onRequestClicked(Request request) {
+        Intent intent = new Intent(this, RequestViewActivity.class);
+        intent.putExtra(Constants.REQUEST_ID, request.getId());
+        startActivity(intent);
     }
 }

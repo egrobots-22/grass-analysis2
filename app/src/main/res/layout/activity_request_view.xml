@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="10"
+    tools:context=".presentation.RequestViewActivity">
+
+    <RelativeLayout
+        android:id="@+id/multiple_images_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/image_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"
+            android:src="@drawable/logo_final"/>
+        <ImageButton
+            android:id="@+id/prevImageButton"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_prev_icon"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true"
+            android:visibility="gone"/>
+
+        <ImageButton
+            android:id="@+id/nextImageButton"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_next_icon"
+            android:layout_centerVertical="true"
+            android:layout_alignParentEnd="true"
+            android:visibility="gone"/>
+    </RelativeLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/text_question_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:text=" السؤال سوف يكتب هنا"
+            android:padding="16dp"
+            android:textSize="18sp"
+            android:textColor="@color/white"
+            android:background="@color/black_overlay" />
+
+        <androidx.media3.ui.PlayerView
+            android:id="@+id/videoView"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:resize_mode="fill" />
+
+    </LinearLayout>
+
+</FrameLayout>

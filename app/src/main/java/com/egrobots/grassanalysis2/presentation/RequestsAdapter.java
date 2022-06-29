@@ -8,6 +8,7 @@ import android.widget.TextView;
 import com.egrobots.grassanalysis2.R;
 import com.egrobots.grassanalysis2.models.Request;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -17,8 +18,12 @@ import butterknife.ButterKnife;
 
 public class RequestsAdapter extends RecyclerView.Adapter<RequestsAdapter.RequestViewHolder> {
 
-    private List<Request> requestsList;
+    private List<Request> requestsList = new ArrayList<>();
+    private OnRequestClickedCallback onRequestClickedCallback;
 
+    public RequestsAdapter(OnRequestClickedCallback onRequestClickedCallback) {
+        this.onRequestClickedCallback = onRequestClickedCallback;
+    }
 
     @NonNull
     @Override
@@ -32,6 +37,12 @@ public class RequestsAdapter extends RecyclerView.Adapter<RequestsAdapter.Reques
         Request request = requestsList.get(position);
         holder.requestIdTextView.setText(request.getId());
         holder.progressStatusTextView.setText(request.getStatus());
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onRequestClickedCallback.onRequestClicked(request);
+            }
+        });
     }
 
     @Override
@@ -54,5 +65,9 @@ public class RequestsAdapter extends RecyclerView.Adapter<RequestsAdapter.Reques
             super(itemView);
             ButterKnife.bind(this, itemView);
         }
+    }
+
+    public interface OnRequestClickedCallback {
+        void onRequestClicked(Request request);
     }
 }

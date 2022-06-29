@@ -395,6 +395,8 @@ public class CaptureImagesActivity extends AppCompatActivity implements GuideDia
     public void onStopRecordingAudio() {
         isAudioRecordingStarted = false;
         handler.removeCallbacks(updateEverySecRunnable);
+        //stop recorded audio
+        audioRecorder.stop();
         recordAudioButton.setEnabled(true);
         recordAudioButton.setImageDrawable(ContextCompat.getDrawable(CaptureImagesActivity.this, R.drawable.recording_audio));
     }

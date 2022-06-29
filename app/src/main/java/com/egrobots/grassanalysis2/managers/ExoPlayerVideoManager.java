@@ -61,26 +61,26 @@ public class ExoPlayerVideoManager {
     public void initializeAudioExoPlayer(Context context, String audioUri, boolean playWhenReady) {
         this.context = context;
         exoPlayer = new ExoPlayer.Builder(context).build();
-        LeastRecentlyUsedCacheEvictor evictor = new LeastRecentlyUsedCacheEvictor(100 * 1024 * 1024);
-        simpleCache = new SimpleCache(new File(context.getCacheDir(), UUID.randomUUID().toString())
-                , evictor
-                , new StandaloneDatabaseProvider(context)
-        );
-        CacheDataSource.Factory cacheDataSource = new CacheDataSource.Factory();
-        cacheDataSource.setCache(simpleCache);
-        DefaultDataSourceFactory defaultDataSourceFactory = new DefaultDataSourceFactory(context, Util.getUserAgent(context, context.getString(R.string.app_name)));
-        cacheDataSource.setUpstreamDataSourceFactory(defaultDataSourceFactory);
-        MediaSource mediaSource = null;
-        try {
+//        LeastRecentlyUsedCacheEvictor evictor = new LeastRecentlyUsedCacheEvictor(100 * 1024 * 1024);
+//        simpleCache = new SimpleCache(new File(context.getCacheDir(), UUID.randomUUID().toString())
+//                , evictor
+//                , new StandaloneDatabaseProvider(context)
+//        );
+//        CacheDataSource.Factory cacheDataSource = new CacheDataSource.Factory();
+//        cacheDataSource.setCache(simpleCache);
+//        DefaultDataSourceFactory defaultDataSourceFactory = new DefaultDataSourceFactory(context, Util.getUserAgent(context, context.getString(R.string.app_name)));
+//        cacheDataSource.setUpstreamDataSourceFactory(defaultDataSourceFactory);
+//        MediaSource mediaSource = null;
+//        try {
             MediaItem mediaItem = MediaItem.fromUri(audioUri);
-            mediaSource = new ProgressiveMediaSource.Factory(cacheDataSource)
-                    .createMediaSource(mediaItem);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//            mediaSource = new ProgressiveMediaSource.Factory(cacheDataSource)
+//                    .createMediaSource(mediaItem);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
 
-        exoPlayer.setMediaSource(mediaSource);
-//        exoPlayer.setMediaItem(mediaItem);
+//        exoPlayer.setMediaSource(mediaSource);
+        exoPlayer.setMediaItem(mediaItem);
         exoPlayer.setPlayWhenReady(playWhenReady);
         exoPlayer.seekTo(currentItem, playbackPosition);
         exoPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
